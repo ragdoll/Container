@@ -18,22 +18,13 @@ func (c *Container) Bind(key string, value interface{}, shared bool) {
 	}
 }
 
-func (c *Container) dropStaleInstance(key string) {
-	delete(c.bindings, key)
-	delete(c.shared, key)
-}
-
-// Find finds an entry of the container by its identifier and returns it.
-func (c *Container) Find(key string) (interface{}, error) {
-	return c.resolve(key)
-}
-
-func (c *Container) resolve(key string) (interface{}, error) {
+// Make finds an entry of the container by its identifier and returns it.
+func (c *Container) Make(key string, parameters ...interface{}) (interface{}, error) {
 	if concrete, ok := c.shared[key]; ok {
 		return concrete, nil
 	}
 	if binding, ok := c.bindings[key]; ok {
-		concrete := binding.getConcrete()
+		concrete := binding.getConcrete(parameters...)
 		if binding.shared {
 			c.shared[key] = concrete
 		}
@@ -42,19 +33,19 @@ func (c *Container) resolve(key string) (interface{}, error) {
 	return nil, fmt.Errorf("Binding [%s] not found in container", key)
 }
 
-// Bound determine if the given key type has been bound.
-func (c *Container) Bound(key string) bool {
-	_, err := c.Find(key)
-	return err == nil
-}
-
 // Get finds a binding and returns the concretion or panics
 func (c *Container) Get(key string) interface{} {
-	binding, err := c.Find(key)
+	binding, err := c.Make(key)
 	if err != nil {
 		panic(err)
 	}
 	return binding
+}
+
+// Bound determine if the given key type has been bound.
+func (c *Container) Bound(key string) bool {
+	_, ok := c.bindings[key]
+	return ok
 }
 
 // Singleton register a shared binding in the container.
@@ -66,4 +57,9 @@ func (c *Container) Singleton(key string, value interface{}) {
 func (c *Container) Flush() {
 	c.bindings = make(map[string]binding)
 	c.shared = make(map[string]interface{})
+}
+
+func (c *Container) dropStaleInstance(key string) {
+	delete(c.bindings, key)
+	delete(c.shared, key)
 }

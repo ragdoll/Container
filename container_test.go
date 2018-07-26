@@ -3,6 +3,7 @@ package container
 import (
 	"math/rand"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -31,10 +32,6 @@ func TestContainer(t *testing.T) {
 		c := New()
 		c.Bind("stuff", "nonsense", false)
 
-		if b, _ := c.Find("stuff"); b != "nonsense" {
-			t.Errorf("cannot get item in container")
-		}
-
 		if c.Get("stuff") != "nonsense" {
 			t.Errorf("cannot get item in container")
 		}
@@ -61,6 +58,14 @@ func TestContainer(t *testing.T) {
 		c.Singleton("check", dummyRandomNumber)
 		if c.Get("check") != c.Get("check") {
 			t.Errorf("Singleton should only be instantiated once")
+		}
+	})
+
+	t.Run("Make dependencies", func(t *testing.T) {
+		c := New()
+		c.Singleton("stuff", func(t string) string { return strings.ToUpper(t) })
+		if v, _ := c.Make("stuff", "nonsense"); v != "NONSENSE" {
+			t.Errorf("cannot make bindings with arguments")
 		}
 	})
 
