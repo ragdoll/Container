@@ -71,16 +71,38 @@ func (c *Container) Singleton(abstract interface{}, concrete interface{}) {
 
 // Get finds a binding and returns the concretion or panic
 func (c *Container) Get(abstract interface{}) interface{} {
-	binding, err := c.Make(abstract)
-	if err != nil {
-		panic(err)
+	if binding, err := c.Make(abstract); err == nil {
+		return binding
 	}
-	return binding
+	panic("binding not found")
 }
 
 // Alias changes the name of the abstract
 func (c *Container) Alias(abstract interface{}, alias string) {
 	c.aliases[alias] = getKey(abstract)
+}
+
+// Invoke auto injects dependencies
+func (c Container) Invoke(function interface{}) interface{} {
+	spec := reflect.TypeOf(function)
+	if spec.Kind() != reflect.Func {
+		panic("Can only invoke function or method")
+	}
+	args := c.extractArguments(function)
+	call := reflect.ValueOf(function).Call(args)
+	if spec.NumOut() > 0 {
+		return call[0].Interface()
+	}
+	return nil
+}
+
+func (c Container) extractArguments(function interface{}) []reflect.Value {
+	spec := reflect.TypeOf(function)
+	args := make([]reflect.Value, spec.NumIn())
+	for i := 0; i < spec.NumIn(); i++ {
+		args[i] = reflect.ValueOf(c.Get(makeName(spec.In(i))))
+	}
+	return args
 }
 
 // Flush remove all bindings from Container

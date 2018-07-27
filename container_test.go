@@ -7,30 +7,25 @@ import (
 	"time"
 )
 
-var (
-	_containerType = reflect.TypeOf((*Container)(nil))
-	_contractType  = reflect.TypeOf((*Contract)(nil))
-)
-
 type dummyInterface interface {
 	Stub() string
+	ParamStub(text string) string
+	InvokeStub(d dummyInterface) string
 }
 
 type dummyStruct struct{}
 
-func (ds dummyStruct) Stub() string { return "stub" }
-
-func (ds dummyStruct) ParamStub(text string) string { return text }
-
-func TestImplement(t *testing.T) {
+func TestImplementation(t *testing.T) {
 	t.Run("Implement Contract", func(t *testing.T) {
+		_containerType := reflect.TypeOf((*Container)(nil))
+		_contractType := reflect.TypeOf((*Contract)(nil))
 		if _containerType.Implements(_contractType.Elem()) != true {
 			t.Error("Container doesn't implement Contract")
 		}
 	})
 }
 
-func TestProviding(t *testing.T) {
+func TestProvide(t *testing.T) {
 	t.Run("Abstract must be <string|interface|struct>", func(t *testing.T) {
 		c := New()
 		c.Provide("stuff", "nonsense", false)
@@ -182,6 +177,49 @@ func TestAlias(t *testing.T) {
 	})
 }
 
+func TestInvoke(t *testing.T) {
+	t.Run("Invoke only <func> or <struct>.<func>", func(t *testing.T) {
+		defer func() {
+			if recover() == nil {
+				t.Error("should only invoke function or struct method")
+			}
+		}()
+
+		c := New()
+		c.Singleton(new(dummyInterface), dummyStruct{})
+		c.Invoke("string")
+	})
+
+	t.Run("Invoke", func(t *testing.T) {
+		c := New()
+		c.Singleton(new(dummyInterface), dummyStruct{})
+		counter := c.Invoke(func(a dummyInterface, e dummyInterface) int {
+			return 10
+		})
+		if counter != 10 {
+			t.Error("cannot invoke function")
+		}
+	})
+
+	t.Run("Invoke struct method", func(t *testing.T) {
+		c := New()
+		c.Singleton(new(dummyInterface), dummyStruct{})
+		stuff := c.Invoke(dummyStruct{}.InvokeStub)
+		if stuff != "nonsense" {
+			t.Error("cannot invoke struct method")
+		}
+	})
+
+	// t.Run("Auto-make Get dependencies", func(t *testing.T) {
+	// 	c := New()
+	// 	c.Singleton(new(dummyInterface), dummyStruct{})
+	// 	c.Singleton("stuff", func(d dummyInterface) string { return "nonsense" })
+	// 	if c.Get("stuff") != "nonsense" {
+	// 		t.Errorf("cannot auto-make Get dependencies")
+	// 	}
+	// })
+}
+
 func TestFlush(t *testing.T) {
 	t.Run("Empty Container", func(t *testing.T) {
 		c := New()
@@ -192,6 +230,12 @@ func TestFlush(t *testing.T) {
 		}
 	})
 }
+
+func (ds dummyStruct) Stub() string { return "stub" }
+
+func (ds dummyStruct) ParamStub(text string) string { return text }
+
+func (ds dummyStruct) InvokeStub(d dummyInterface) string { return "nonsense" }
 
 func dummyRandomNumber() int {
 	rand.Seed(time.Now().UnixNano())

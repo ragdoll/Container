@@ -8,6 +8,6 @@ type Contract interface {
 	Singleton(abstract interface{}, concrete interface{})
 	Get(abstract interface{}) interface{}
 	Alias(abstract interface{}, alias string)
-	// Invoke(abstract interface{})
+	Invoke(abstract interface{}) interface{}
 	Flush()
 }
