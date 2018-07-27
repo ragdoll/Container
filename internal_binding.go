@@ -1,23 +1,17 @@
 package container
 
-import (
-	"reflect"
-)
+import "reflect"
 
-type binding struct {
-	container      *Container
-	concrete       interface{}
-	shared         bool
-	sharedConcrete interface{}
+type internalBinding struct {
+	container *Container
+	concrete  interface{}
+	shared    bool
 }
 
-func (b *binding) getConcrete(parameters ...interface{}) interface{} {
-	spec := reflect.ValueOf(b.concrete)
+func (ib *internalBinding) getConcrete(parameters ...interface{}) interface{} {
+	spec := reflect.ValueOf(ib.concrete)
 	if spec.Kind() == reflect.Func {
 		spec = spec.Call(makeArguments(parameters...))[0]
-	}
-	if spec.Kind() == reflect.Struct {
-		return spec.Elem().Interface()
 	}
 	return spec.Interface()
 }
