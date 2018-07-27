@@ -154,6 +154,34 @@ func TestGet(t *testing.T) {
 	})
 }
 
+func TestAlias(t *testing.T) {
+	t.Run("Alias abstract", func(t *testing.T) {
+		c := New()
+		c.Singleton(new(dummyInterface), dummyStruct{})
+		c.Alias(new(dummyInterface), "dummy")
+		if c.Get("dummy").(dummyInterface).Stub() != "stub" {
+			t.Error("cannot alias abstract")
+		}
+		if c.Get(new(dummyInterface)).(dummyInterface).Stub() != "stub" {
+			t.Error("aliased abstract should still be accessible")
+		}
+	})
+
+	t.Run("Flush removes alias", func(t *testing.T) {
+		defer func() {
+			if recover() == nil {
+				t.Error("flushing does not remove alias")
+			}
+		}()
+
+		c := New()
+		c.Singleton(new(dummyInterface), dummyStruct{})
+		c.Alias(new(dummyInterface), "dummy")
+		c.Flush()
+		c.Get("dummy")
+	})
+}
+
 func TestFlush(t *testing.T) {
 	t.Run("Empty Container", func(t *testing.T) {
 		c := New()

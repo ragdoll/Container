@@ -9,6 +9,7 @@ import (
 type Container struct {
 	bindings map[string]internalBinding
 	shared   map[string]interface{}
+	aliases  map[string]string
 }
 
 // New creates a new container instance
@@ -47,6 +48,9 @@ func (c *Container) Has(abstract interface{}) bool {
 // Make finds an entry of the container by its identifier and returns it.
 func (c *Container) Make(abstract interface{}, parameters ...interface{}) (interface{}, error) {
 	key := getKey(abstract)
+	if alias, found := c.aliases[key]; found {
+		key = alias
+	}
 	if concrete, ok := c.shared[key]; ok {
 		return concrete, nil
 	}
@@ -66,18 +70,24 @@ func (c *Container) Singleton(abstract interface{}, concrete interface{}) {
 }
 
 // Get finds a binding and returns the concretion or panic
-func (c *Container) Get(key interface{}) interface{} {
-	binding, err := c.Make(key)
+func (c *Container) Get(abstract interface{}) interface{} {
+	binding, err := c.Make(abstract)
 	if err != nil {
 		panic(err)
 	}
 	return binding
 }
 
+// Alias changes the name of the abstract
+func (c *Container) Alias(abstract interface{}, alias string) {
+	c.aliases[alias] = getKey(abstract)
+}
+
 // Flush remove all bindings from Container
 func (c *Container) Flush() {
-	c.bindings = make(map[string]internalBinding)
 	c.shared = make(map[string]interface{})
+	c.aliases = make(map[string]string)
+	c.bindings = make(map[string]internalBinding)
 }
 
 func isInterface(t reflect.Type) bool {

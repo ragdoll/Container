@@ -7,7 +7,7 @@ type Contract interface {
 	Make(abstract interface{}, parameters ...interface{}) (interface{}, error)
 	Singleton(abstract interface{}, concrete interface{})
 	Get(abstract interface{}) interface{}
-	// Alias(abstract interface{}, alias string)
+	Alias(abstract interface{}, alias string)
 	// Invoke(abstract interface{})
 	Flush()
 }
