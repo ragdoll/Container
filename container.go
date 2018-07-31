@@ -61,7 +61,7 @@ func (c Container) Alias(abstract interface{}, alias string) {
 }
 
 // Make finds an entry of the container by its identifier and returns it.
-func (c *Container) Make(abstract interface{}, parameters ...interface{}) (interface{}, error) {
+func (c Container) Make(abstract interface{}, parameters ...interface{}) (interface{}, error) {
 	if shared, ok := c.shared[utils.GetKey(abstract)]; ok {
 		return shared, nil
 	}
