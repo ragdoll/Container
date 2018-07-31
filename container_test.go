@@ -118,7 +118,7 @@ func TestMake(t *testing.T) {
 			t.Error("cannot make shared binding")
 		}
 
-		c.BindShared("stuff", dummyRandomNumber)
+		c.Singleton("stuff", dummyRandomNumber)
 		b1, _ := c.Make("stuff")
 		b2, _ := c.Make("stuff")
 		if b1 != b2 {
@@ -144,5 +144,5 @@ func TestHas(t *testing.T) {
 
 func dummyRandomNumber() int {
 	rand.Seed(time.Now().UnixNano())
-	return rand.Intn(100000)
+	return rand.Intn(int(^uint(0) >> 1))
 }
