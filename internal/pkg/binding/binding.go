@@ -2,6 +2,8 @@ package binding
 
 import (
 	"reflect"
+
+	"go.rafdel.co/akisa/container/internal/pkg/utils"
 )
 
 // Binding struct
@@ -24,6 +26,10 @@ func (b *Binding) GetConcrete(parameters ...interface{}) interface{} {
 		return interfaceReturnValues(values)
 	}
 	return spec.Interface()
+}
+
+func (b Binding) ConcreteIsFunc() bool {
+	return utils.IsFunc(b.Concrete) == true
 }
 
 func parameterValues(parameters ...interface{}) []reflect.Value {

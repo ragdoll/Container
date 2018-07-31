@@ -9,8 +9,8 @@ type Contract interface {
 	Alias(abstract interface{}, alias string)
 
 	Make(abstract interface{}, parameters ...interface{}) (interface{}, error)
-	// Invoke(abstract interface{}) interface{}
-	// Get(abstract interface{}) interface{}
+	Invoke(abstract interface{}) interface{}
+	Get(abstract interface{}) interface{}
 
 	Has(abstract interface{}) bool
 }

@@ -5,6 +5,8 @@ import "reflect"
 func GetKey(a interface{}) string {
 	abstract := reflect.TypeOf(a)
 	switch {
+	case IsImplements(a, new(reflect.Type)):
+		abstract = a.(reflect.Type)
 	case IsInterface(a):
 		abstract = abstract.Elem()
 	case abstract.Kind() == reflect.String:

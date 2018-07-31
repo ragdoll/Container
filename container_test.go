@@ -127,6 +127,75 @@ func TestMake(t *testing.T) {
 	})
 }
 
+func TestInvoke(t *testing.T) {
+	t.Run("can invoke", func(t *testing.T) {
+		c := New()
+		c.Bind(new(Contract), Container{})
+		stuff := c.Invoke(func(c Contract) string { return "nonsense" })
+		if stuff != "nonsense" {
+			t.Error("cannot invoke function with container bindings")
+		}
+	})
+
+	t.Run("invoke from make", func(t *testing.T) {
+		c := New()
+		c.Bind(new(Contract), Container{})
+		stuff, _ := c.Make(func(c Contract) string { return "nonsense" })
+		if stuff != "nonsense" {
+			t.Error("cannot invoke function with container bindings through make()")
+		}
+	})
+
+	t.Run("only accept abstract<func>", func(t *testing.T) {
+		defer func() {
+			if recover() == nil {
+				t.Error("must accept only abstract<func>")
+			}
+		}()
+
+		c := New()
+		c.Bind(new(Contract), Container{})
+		c.Invoke("nonsense")
+	})
+}
+
+func TestGet(t *testing.T) {
+	t.Run("can get", func(t *testing.T) {
+		c := New()
+		c.Bind("stuff", "nonsense")
+		if c.Get("stuff") != "nonsense" {
+			t.Error("cannot get abstract from container")
+		}
+	})
+
+	t.Run("get alias", func(t *testing.T) {
+		c := New()
+		c.Bind("stuff", "nonsense")
+		c.Alias("stuff", "polish")
+		if c.Get("polish") != "nonsense" {
+			t.Error("cannot get aliased abstract from container")
+		}
+	})
+
+	t.Run("panic if missing", func(t *testing.T) {
+		defer func() {
+			if recover() == nil {
+				t.Error("should panic if binding missing")
+			}
+		}()
+		New().Get("stuff")
+	})
+
+	t.Run("invoke concrete<func>", func(t *testing.T) {
+		c := New()
+		c.Bind(new(Contract), Container{})
+		c.Bind("stuff", func(c Contract) string { return "nonsense" })
+		if c.Get("stuff") != "nonsense" {
+			t.Error("should invoke concrete<func> with appropriate params")
+		}
+	})
+}
+
 func TestHas(t *testing.T) {
 	t.Run("find binding", func(t *testing.T) {
 		c := New()
