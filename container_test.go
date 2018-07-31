@@ -2,62 +2,35 @@ package container
 
 import (
 	"math/rand"
-	"reflect"
 	"testing"
 	"time"
+
+	"go.rafdel.co/akisa/container/internal/pkg/utils"
 )
 
-type dummyInterface interface {
-	Stub() string
-	ParamStub(text string) string
-	InvokeStub(d dummyInterface) string
-}
-
-type dummyStruct struct{}
-
-func TestImplementation(t *testing.T) {
+func TestContract(t *testing.T) {
 	t.Run("Implement Contract", func(t *testing.T) {
-		_containerType := reflect.TypeOf((*Container)(nil))
-		_contractType := reflect.TypeOf((*Contract)(nil))
-		if _containerType.Implements(_contractType.Elem()) != true {
+		if !utils.IsImplements(Container{}, new(Contract)) {
 			t.Error("Container doesn't implement Contract")
 		}
 	})
 }
 
-func TestProvide(t *testing.T) {
-	t.Run("Abstract must be <string|interface|struct>", func(t *testing.T) {
+func TestBind(t *testing.T) {
+	t.Run("can bind", func(t *testing.T) {
 		c := New()
-		c.Provide("stuff", "nonsense", false)
-		if c.Has("stuff") == false {
-			t.Error("cannot bind stuff to container")
+		if c.Bind("stuff", "nonsense"); !c.Has("stuff") {
+			t.Error("cannot bind stuff to the container")
 		}
-
-		c.Provide(new(dummyInterface), dummyStruct{}, false)
-		if c.Has(new(dummyInterface)) == false {
-			t.Error("cannot use interface as abstract to bind concrete")
-		}
-
-		c.Provide(dummyStruct{}, nil, false)
-		if c.Has(dummyStruct{}) == false {
-			t.Error("abstract of type struct and nil concrete should return abstract")
-		}
-
-		defer func() {
-			if recover() == nil {
-				t.Error("abstract can only be of type <string|interface|struct>")
-			}
-		}()
-		c.Provide([]string{}, "nonsense", false)
 	})
 
-	t.Run("Concrete of abstract<interface> implements interface", func(t *testing.T) {
+	t.Run("concrete of abstract<interface> implements interface", func(t *testing.T) {
 		defer func() {
 			if recover() == nil {
 				t.Error("concrete of abstract<interface> must implement interface")
 			}
 		}()
-		New().Provide(new(dummyInterface), "nonsense", false)
+		New().Bind(new(Contract), "nonsense")
 	})
 
 	t.Run("abstract<struct> wants concrete<nil>", func(t *testing.T) {
@@ -66,176 +39,108 @@ func TestProvide(t *testing.T) {
 				t.Error("abstract<struct> wants concrete<nil>")
 			}
 		}()
-		New().Provide(dummyStruct{}, "nonsense", false)
+		New().Bind(Container{}, "nonsense")
 	})
-}
 
-func TestMake(t *testing.T) {
-	t.Run("Make binding", func(t *testing.T) {
+	t.Run("shared", func(t *testing.T) {
 		c := New()
-		c.Provide("string", "lorem", false)
-		if value, _ := c.Make("string"); value != "lorem" {
-			t.Error("can't make string from container")
+		c.BindShared("stuff", "nonsense")
+		if c.Has("stuff") == false {
+			t.Error("shared binding not binding")
 		}
 
-		c.Provide("integer", 90210, false)
-		if value, _ := c.Make("integer"); value != 90210 {
-			t.Error("can't make integer from container")
+		c.Singleton("singleton", "nonsense")
+		if c.Has("singleton") == false {
+			t.Error("singleton helper function not binding")
 		}
-
-		c.Provide("boolean", true, false)
-		if value, _ := c.Make("boolean"); value != true {
-			t.Error("can't make boolean from container")
-		}
-
-		c.Provide("map", map[string]string{"key": "value"}, false)
-		if value, _ := c.Make("map"); value.(map[string]string)["key"] != "value" {
-			t.Error("can't make map from container")
-		}
-
-		c.Provide("function", func() string { return "return" }, false)
-		if value, _ := c.Make("function"); value != "return" {
-			t.Error("can't make function from container")
-		}
-
-		c.Provide("struct", dummyStruct{}, false)
-		if value, _ := c.Make("struct"); value.(dummyStruct).Stub() != "stub" {
-			t.Error("can't make struct from container")
-		}
-
-		c.Provide(new(dummyInterface), dummyStruct{}, false)
-		if value, _ := c.Make(new(dummyInterface)); value.(dummyInterface).Stub() != "stub" {
-			t.Error("can't make new(dummyInterface) from container")
-		}
-
-		c.Provide(dummyStruct{}, nil, false)
-		if value, _ := c.Make(dummyStruct{}); value.(dummyStruct).Stub() != "stub" {
-			t.Error("can't make dummyStruct{} from container")
-		}
-	})
-
-	t.Run("Make with parameters", func(t *testing.T) {
-		c := New()
-		c.Provide("stuff", func(a, b int) int { return a + b }, false)
-		if value, _ := c.Make("stuff", 10, 5); value != 15 {
-			t.Error("can't make function with parameters")
-		}
-		c.Flush()
-
-		c.Provide("stuff", dummyStruct{}.ParamStub, false)
-		if value, _ := c.Make("stuff", "nonsense"); value != "nonsense" {
-			t.Error("can't make struct method with parameters")
-		}
-	})
-
-	t.Run("Make shared binding", func(t *testing.T) {
-		c := New()
-		c.Provide("stuff", dummyRandomNumber, true)
-		c.Singleton("other", dummyRandomNumber)
-		if c.Get("stuff") != c.Get("stuff") && c.Get("other") != c.Get("other") {
-			t.Error("Shared bindings should only be instantiated once")
-		}
-	})
-}
-
-func TestGet(t *testing.T) {
-	t.Run("Panic", func(t *testing.T) {
-		defer func() {
-			if recover() == nil {
-				t.Error("should panic if cannot get from container")
-			}
-		}()
-		New().Get("stuff")
 	})
 }
 
 func TestAlias(t *testing.T) {
-	t.Run("Alias abstract", func(t *testing.T) {
+	t.Run("can alias", func(t *testing.T) {
 		c := New()
-		c.Singleton(new(dummyInterface), dummyStruct{})
-		c.Alias(new(dummyInterface), "dummy")
-		if c.Get("dummy").(dummyInterface).Stub() != "stub" {
-			t.Error("cannot alias abstract")
-		}
-		if c.Get(new(dummyInterface)).(dummyInterface).Stub() != "stub" {
-			t.Error("aliased abstract should still be accessible")
+		c.Bind(new(Contract), Container{})
+		if c.Alias(new(Contract), "alias"); c.Has("alias") == false {
+			t.Error("cannot alias abstract in container")
 		}
 	})
 
-	t.Run("Flush removes alias", func(t *testing.T) {
+	t.Run("alias must alias only existing abstract", func(t *testing.T) {
 		defer func() {
 			if recover() == nil {
-				t.Error("flushing does not remove alias")
+				t.Error("does not account for trying to alias missing abstract")
 			}
 		}()
-
-		c := New()
-		c.Singleton(new(dummyInterface), dummyStruct{})
-		c.Alias(new(dummyInterface), "dummy")
-		c.Flush()
-		c.Get("dummy")
+		New().Alias(new(Contract), "alias")
 	})
 }
 
-func TestInvoke(t *testing.T) {
-	t.Run("Invoke only <func> or <struct>.<func>", func(t *testing.T) {
-		defer func() {
-			if recover() == nil {
-				t.Error("should only invoke function or struct method")
-			}
-		}()
-
+func TestMake(t *testing.T) {
+	t.Run("can make concrete<interface{}> from abstract", func(t *testing.T) {
 		c := New()
-		c.Singleton(new(dummyInterface), dummyStruct{})
-		c.Invoke("string")
-	})
-
-	t.Run("Invoke", func(t *testing.T) {
-		c := New()
-		c.Singleton(new(dummyInterface), dummyStruct{})
-		counter := c.Invoke(func(a dummyInterface, e dummyInterface) int {
-			return 10
-		})
-		if counter != 10 {
-			t.Error("cannot invoke function")
+		c.Bind(new(Contract), Container{})
+		if _, err := c.Make(new(Contract)); err != nil {
+			t.Error("cannot make binding from container")
 		}
 	})
 
-	t.Run("Invoke struct method", func(t *testing.T) {
+	t.Run("can make concrete<interface{}> with alias", func(t *testing.T) {
 		c := New()
-		c.Singleton(new(dummyInterface), dummyStruct{})
-		stuff := c.Invoke(dummyStruct{}.InvokeStub)
-		if stuff != "nonsense" {
-			t.Error("cannot invoke struct method")
+		c.Bind(new(Contract), Container{})
+		c.Alias(new(Contract), "container")
+		if _, err := c.Make("container"); err != nil {
+			t.Error("cannot make concrete<interface{}> with alias")
 		}
 	})
 
-	// t.Run("Auto-make Get dependencies", func(t *testing.T) {
-	// 	c := New()
-	// 	c.Singleton(new(dummyInterface), dummyStruct{})
-	// 	c.Singleton("stuff", func(d dummyInterface) string { return "nonsense" })
-	// 	if c.Get("stuff") != "nonsense" {
-	// 		t.Errorf("cannot auto-make Get dependencies")
-	// 	}
-	// })
-}
-
-func TestFlush(t *testing.T) {
-	t.Run("Empty Container", func(t *testing.T) {
+	t.Run("call concrete<func> during make", func(t *testing.T) {
 		c := New()
-		c.Provide("stuff", "nonsense", false)
-		c.Flush()
-		if c.Has("stuff") {
-			t.Error("can't flush container")
+		c.Bind("stuff", func() string { return "nonsense" })
+		if value, _ := c.Make("stuff"); value != "nonsense" {
+			t.Error("does not call concrete<func> during make")
+		}
+	})
+
+	t.Run("call concrete<func> during make with parameters", func(t *testing.T) {
+		c := New()
+		c.Bind("stuff", func(a, b int) int { return a + b })
+		if value, _ := c.Make("stuff", 10, 15); value != 25 {
+			t.Error("does not call concrete<func> during make with parameters")
+		}
+	})
+
+	t.Run("can make shared binding", func(t *testing.T) {
+		c := New()
+		c.BindShared("stuff", dummyRandomNumber)
+		a1, _ := c.Make("stuff")
+		a2, _ := c.Make("stuff")
+		if a1 != a2 {
+			t.Error("cannot make shared binding")
+		}
+
+		c.BindShared("stuff", dummyRandomNumber)
+		b1, _ := c.Make("stuff")
+		b2, _ := c.Make("stuff")
+		if b1 != b2 {
+			t.Error("cannot make shared binding via singleton")
 		}
 	})
 }
 
-func (ds dummyStruct) Stub() string { return "stub" }
+func TestHas(t *testing.T) {
+	t.Run("find binding", func(t *testing.T) {
+		c := New()
+		c.Bind("stuff", "nonsense")
 
-func (ds dummyStruct) ParamStub(text string) string { return text }
+		if c.Has("stuff") == false {
+			t.Error("container should have binding [stuff]")
+		}
 
-func (ds dummyStruct) InvokeStub(d dummyInterface) string { return "nonsense" }
+		if c.Has("notstuff") == true {
+			t.Error("container should not have binding [notstuff]")
+		}
+	})
+}
 
 func dummyRandomNumber() int {
 	rand.Seed(time.Now().UnixNano())
