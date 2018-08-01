@@ -31,7 +31,7 @@ dep ensure -add go.rafdel.co/akisa/container
 ```
 
 ## Usage
-First create a new instance of the container.
+First, create a new instance of the container.
 
 ```go
 package main
@@ -69,7 +69,7 @@ dependency := c.Get("stuff")
 *Note: `Get()` will panic if the dependency isn't found*
 
 ### Advanced binding
-One of the most important binding we can do is binding an interface to a concrete. *If you use an interface as an abstract, the concrete must implement the interface*.
+One of the most important bindings we can do is binding an interface to a concrete. *If you use an interface as an abstract, the concrete must implement the interface*.
 
 ```go
 c.Bind(new(Formatter), HTMLFormatter{})
@@ -78,7 +78,8 @@ c.Bind(new(Formatter), HTMLFormatter{})
 Doing this tells the container that whenever you need a new instance of the `Formatter` interface, the `HTMLFormatter` struct should be returned as the concrete.
 
 **structs**
-Just as we can use an interface as the abstract, we can also use a struct. Note that if you use a struct as an abstract, the concrete must be `nil` otherwise the container will `panic`.
+
+Just as we can use an interface as the abstract, we can also use a struct. Note that if you use a struct as an abstract, the concrete must be `nil` otherwise, the container will `panic`.
 
 ```go
 c.Bind(Formatter{}, nil)
@@ -95,7 +96,7 @@ c.Bind("stuff", func() string {
 })
 ```
 
-When we try to get the binding above, the container will automatically call the function and return the return-value from the function call.
+When we try to get the binding above, the container will automatically call the function and return the return value from the function call.
 
 ```go
 c.Get("stuff") // nonsense
@@ -108,7 +109,7 @@ c.Bind("sum", func(a, b int) int {
 })
 ```
 
-If we try to get `c.Get("sum")` above, the invocation will fail as the function binding requires parameters be passed to it. We can pass parameters to function bindings using:
+If we try to get `c.Get("sum")` above, the invocation will fail as the function binding requires parameters to be passed to it. We can pass parameters to function bindings using:
 
 ```go
 c.Make("sum", 10, 20)
@@ -161,7 +162,7 @@ Aliasing doesn't affect existing bindings, it will only create a pointer to the 
 After creating an alias, we can resolve it as we normally would:
 
 ```go
-c.Get("formatter").(Formatter)
+c.Get("formatter")
 ```
 
 *Attempting to alias a non-existent abstract will cause a panic*.
