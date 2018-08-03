@@ -5,6 +5,10 @@ Thumbs.db
 # Dependencies
 vendor
 
+# Test artifacts
+cover.out
+coverage.html
+
 # Editor directories and files
 .idea
 .vscode
