@@ -154,9 +154,7 @@ c.Make("sum", 10, 20)
 
 Taking advantage of the dependency injection of our application, we can also resolve dependencies from the container.
 
-
 For example, we can do:
-
 
 ```go
 c.Bind(new(Formatter), HTMLFormatter{})
@@ -167,12 +165,9 @@ c.Bind("formatter", func(f Formatter) {
 })
 ```
 
-
 When we try to `c.Get("formatter")`, the container will read the function and inject the dependencies from the container into the function. It'll panic if it cannot find the dependency.
 
-
-*We can also resolve the "formatter" dependency above using `Make()`. If we don't pass parameters to `Make()`, it'll try to auto-resolve binding dependencies from the container.*
-
+**If a bound function returns multiple values, an array of those values is returned**. *We can also resolve the "formatter" dependency above using `Make()`. If we don't pass parameters to `Make()`, it'll try to auto-resolve binding dependencies from the container.*
 
 ### Shared bindings or singletons
 Currently, when you get a binding from the container — a new instance is returned. So if we pass a function as the concrete, a new instance of that function is returned.
