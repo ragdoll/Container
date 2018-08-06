@@ -1,4 +1,4 @@
- # [Akisa][akisa] (Container) ![][version-badge] [![][report-card-badge]](https://goreportcard.com/report/github.com/GoAkisa/Container) [![][license-badge]](LICENSE)
+ # [Akisa][akisa] (Container) ![][version-badge] [![][report-card-badge]](https://goreportcard.com/report/github.com/GoAkisa/Container) [![cover.run](https://cover.run/go/go.rafdel.co/akisa/container.svg?style=flat&tag=golang-1.10)](https://cover.run/go?tag=golang-1.10&repo=go.rafdel.co%2Fakisa%2Fcontainer) [![][license-badge]](LICENSE)
 Container is an implementation of an IoC (inversion of control) pattern which adheres to the dependency inversion principle of the [SOLID design principles][scotch-solid].
 
 
