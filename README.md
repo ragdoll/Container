@@ -39,7 +39,7 @@ dep ensure -add go.rafdel.co/akisa/container
 
 
 ## Usage
-First, create a new instance of the container.
+First, create a new instance of the container. You can head over to [GoDoc](https://godoc.org/go.rafdel.co/akisa/container) for more info.
 
 
 ```go
