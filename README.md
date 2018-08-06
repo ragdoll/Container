@@ -1,4 +1,4 @@
- # [Akisa][akisa] (Container) ![][version-badge] [![][license-badge]](LICENSE)
+ # [Akisa][akisa] (Container) ![][version-badge] [![][report-card-badge]](https://goreportcard.com/report/github.com/GoAkisa/Container) [![][license-badge]](LICENSE)
 Container is an implementation of an IoC (inversion of control) pattern which adheres to the dependency inversion principle of the [SOLID design principles][scotch-solid].
 
 
@@ -299,7 +299,8 @@ This project uses the [MIT](LICENSE) license.
 [rafdel]: https://rafdel.co
 [my-twitter]: https://twitter.com/kayandrae07
 [issue]: https://github.com/GoAkisa/Container/issues
-[version-badge]: https://img.shields.io/github/tag/GoAkisa/Container.svg
+[version-badge]: https://img.shields.io/github/tag/goakisa/container.svg
+[report-card-badge]: https://goreportcard.com/badge/github.com/GoAkisa/Container
 [license-badge]: https://img.shields.io/apm/l/vim-mode.svg?longCache=true
 [badge-progress]: https://img.shields.io/badge/status-progress-blue.svg
 [badge-planning]: https://img.shields.io/badge/status-planning-orange.svg 
